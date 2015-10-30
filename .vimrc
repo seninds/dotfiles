@@ -31,6 +31,9 @@ set incsearch  " show the next match while entering a search
 set nowrapscan
 nnoremap <silent> <C-l> :nohl<CR><C-l>
 
+set fileencodings=utf-8,cp1251,koi8-r
+set encoding=utf-8
+
 " Ctrl-j/k deletes blank line below/above, and Alt-j/k inserts.
 nnoremap <silent> <C-j> m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 nnoremap <silent> <C-k> m`:silent -g/\m^\s*$/d<CR>``:noh<CR>
