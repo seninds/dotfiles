@@ -17,6 +17,8 @@ alias l='ls -CF'
 # Python
 alias py='python'
 alias ipy='ipython'
+alias ipy3='ipython3'
+alias ipy2='ipython2'
 
 # CMake
 alias cmake-dbg='cmake $1 -DCMAKE_BUILD_TYPE=DEBUG'
