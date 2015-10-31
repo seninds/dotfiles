@@ -13,7 +13,6 @@ if [ ! -e ~/.bash ]; then
 else
     REPO_FILES=$(find .bash -type f)
     for REPO_FILE in $REPO_FILES; do
-        echo $REPO_FILE
         if [ ! -e $HOME/$REPO_FILE ] || ! cmp -s $REPO_FILE $HOME/$REPO_FILE ; then
             cp -f $REPO_FILE $HOME/$REPO_FILE
         fi
