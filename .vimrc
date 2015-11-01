@@ -39,3 +39,7 @@ nnoremap <silent> <C-j> m`:silent +g/\m^\s*$/d<CR>``:noh<CR>
 nnoremap <silent> <C-k> m`:silent -g/\m^\s*$/d<CR>``:noh<CR>
 nnoremap <silent> j :set paste<CR>m`o<Esc>``:set nopaste<CR>
 nnoremap <silent> k :set paste<CR>m`O<Esc>``:set nopaste<CR>
+
+syntax enable
+set background=dark
+colorscheme elflord
