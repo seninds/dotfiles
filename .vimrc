@@ -43,3 +43,8 @@ nnoremap <silent> k :set paste<CR>m`O<Esc>``:set nopaste<CR>
 syntax enable
 set background=dark
 colorscheme elflord
+
+augroup vimrc                                                                                                                                                                        
+" Automatically delete trailing DOS-returns and whitespace on file open and write.                                                                                                                                                                           
+  autocmd BufRead,BufWritePre,FileWritePre * silent! %s/[\r \t]\+$//                                                                                                                 
+augroup END
