@@ -1,6 +1,4 @@
 #!/bin/bash
 
-cp -f .bashrc ~
-cp -f .vimrc ~
-cp -r .bash ~
-cp -r .ssh ~
+cp -f .bashrc .vimrc .tmux.conf ~
+cp -r .bash .ssh ~
