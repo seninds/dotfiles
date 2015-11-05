@@ -2,5 +2,5 @@
 
 cp -f .bashrc ~
 cp -f .vimrc ~
-cp -rf .bash ~
-cp -rf .ssh ~
+cp -r .bash ~
+cp -r .ssh ~
