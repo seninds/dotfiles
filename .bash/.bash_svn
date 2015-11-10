@@ -1,0 +1,5 @@
+#!/bin/sh
+
+function svn_rm_artifacts () {
+    svn status | grep -E "^\?" | awk '{print $2}' | xargs rm -rf
+}
