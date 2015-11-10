@@ -12,9 +12,6 @@ set nowrap  " Turn of text wrapping
 
 set expandtab  " Automatically expand tabs into spaces
 set shiftwidth=4 softtabstop=4 tabstop=4
-autocmd FileType cpp setlocal shiftwidth=2 softtabstop=2 tabstop=2
-autocmd FileType c setlocal shiftwidth=2 softtabstop=2 tabstop=2
-autocmd FileType cuda setlocal shiftwidth=2 softtabstop=2 tabstop=2
 
 filetype indent on
 set autoindent
@@ -44,7 +41,7 @@ syntax enable
 set background=dark
 colorscheme elflord
 
-augroup vimrc                                                                                                                                                                        
-" Automatically delete trailing DOS-returns and whitespace on file open and write.                                                                                                                                                                           
-  autocmd BufRead,BufWritePre,FileWritePre * silent! %s/[\r \t]\+$//                                                                                                                 
+augroup vimrc
+" Automatically delete trailing DOS-returns and whitespace on file open and write.
+  autocmd BufRead,BufWritePre,FileWritePre * silent! %s/[\r \t]\+$//
 augroup END
