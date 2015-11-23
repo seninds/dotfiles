@@ -9,9 +9,12 @@ set relativenumber
 set nowrap  " Turn of text wrapping
 set tabstop=4 shiftwidth=4 softtabstop=4 expandtab
 
-execute pathogen#infect()
+filetype off
+call pathogen#infect()
+call pathogen#helptags()
+filetype plugin indent on
 syntax on
-filetype indent plugin on
+
 set smartindent
 
 " Turn of swap files and backups
