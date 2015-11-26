@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+import os.path
+import shutil
+
+
+if __name__ == '__main__':
+    project_root_path = os.path.dirname(__file__)
+    home_dir = os.path.expanduser('~')
+
+    for filename in ['.bashrc', '.vimrc', '.tmux.conf']:
+        shutil.copy(os.path.join(project_root_path, filename), home_dir)
+
+    for dirname in ['.bash', '.ssh']:
+        src_dir = os.path.join(project_root_path, dirname)
+        dst_dir = os.path.join(home_dir, dirname)
+
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+
+        for filename in os.listdir(src_dir):
+            shutil.copy(os.path.join(src_dir, filename), dst_dir)
+
