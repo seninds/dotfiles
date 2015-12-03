@@ -1,7 +1,6 @@
 #!/bin/bash
 
 declare -a VIM_PLUGINS_REPOS=("https://github.com/nvie/vim-flake8"
-                              "https://github.com/klen/python-mode"
                               "https://github.com/tell-k/vim-autopep8")
 
 VIM_BUNDLE_DIR=~/.vim/bundle
