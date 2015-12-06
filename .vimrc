@@ -40,12 +40,14 @@ nnoremap <silent> k :set paste<CR>m`O<Esc>``:set nopaste<CR>
 
 set background=dark
 colorscheme elflord
+hi TabLineFill ctermfg=DarkGray ctermbg=Black
 
 if exists('+colorcolumn')
     set colorcolumn=80
 endif
 
 set foldenable
+set foldmethod=manual
 set foldcolumn=5
 
 augroup vimrc
