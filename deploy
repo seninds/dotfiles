@@ -18,9 +18,9 @@ if __name__ == '__main__':
 
     for filename in ['bashrc', 'vimrc', 'tmux.conf']:
         shutil.copy(os.path.join(project_root_path, filename),
-                    os.path.join(home_dir, '.', filename))
+                    os.path.join(home_dir, '.' + filename))
 
     src_dir = os.path.join(project_root_path, 'bash')
-    dst_dir = os.path.join(home_dir, '.', '.', 'bash')
+    dst_dir = os.path.join(home_dir, '.', '.' + 'bash')
     copy_dir(src_dir, dst_dir)
 
