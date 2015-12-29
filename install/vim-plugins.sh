@@ -1,5 +1,8 @@
 #!/bin/bash
 
+mkdir -p ~/.vim/autoload ~/.vim/bundle && \
+curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+
 declare -a VIM_PLUGINS_REPOS=("https://github.com/nvie/vim-flake8"
                               "https://github.com/tell-k/vim-autopep8")
 
