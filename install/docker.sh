@@ -5,6 +5,7 @@ DOCKER_LIST="/etc/apt/sources.list.d/docker.list"
 echo deb https://apt.dockerproject.org/repo ubuntu-$(lsb_release -c | cut -f2) main | tee "$DOCKER_LIST"
 apt-get update
 apt-get install -y docker-engine
+adduser $(USER) docker
 
 curl -L https://github.com/docker/compose/releases/download/1.5.2/docker-compose-$(uname -s)-$(uname -m) > /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
