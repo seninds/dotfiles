@@ -23,3 +23,5 @@ alias ipy2='ipython2'
 # CMake
 alias cmake-dbg='cmake $1 -DCMAKE_BUILD_TYPE=DEBUG'
 alias cmake-rls='cmake $1 -DCMAKE_BUILD_TYPE=RELEASE'
+
+alias envup='source <(tmux show-environment | grep -v "^-" | sed "s/=\(.*\)/=\"\1\"/")'
