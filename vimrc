@@ -54,3 +54,8 @@ augroup vimrc
     " Automatically delete trailing DOS-returns and whitespace
     autocmd BufRead,BufWritePre,FileWritePre * silent! %s/[\r \t]\+$//
 augroup END
+
+set keymap=russian-jcukenwin
+set iminsert=0
+set imsearch=0
+highlight lCursor guifg=NONE guibg=Cyan
