@@ -1,5 +1,10 @@
 #!/bin/sh
 
-function svn_rm_artifacts () {
+function svn_rm_artifacts {
     svn status | grep -E "^\?" | awk '{print $2}' | xargs rm -rf
+}
+
+function svn_author_log {
+    SVN_USERNAME=${SVN_USERNAME:-$USER}
+    svn log $@ | sed -n "/$SVN_USERNAME/,/-----$/ p"
 }
