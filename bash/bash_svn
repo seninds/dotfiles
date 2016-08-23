@@ -6,5 +6,9 @@ function svn_rm_artifacts {
 
 function svn_author_log {
     SVN_USERNAME=${SVN_USERNAME:-$USER}
-    svn log $@ | sed -n "/$SVN_USERNAME/,/-----$/ p"
+    svn log "$@" | sed -n "/$SVN_USERNAME/,/-----$/ p"
+}
+
+function svc {
+    ~/.bash/svn-color.py "$@"
 }

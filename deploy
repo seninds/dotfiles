@@ -23,4 +23,3 @@ if __name__ == '__main__':
     src_dir = os.path.join(project_root_path, 'bash')
     dst_dir = os.path.join(home_dir, '.', '.' + 'bash')
     copy_dir(src_dir, dst_dir)
-
