@@ -9,6 +9,6 @@ function svn_author_log {
     svn log "$@" | sed -n "/$SVN_USERNAME/,/-----$/ p"
 }
 
-function svc {
+function svnc {
     ~/.bash/svn-color.py "$@"
 }
