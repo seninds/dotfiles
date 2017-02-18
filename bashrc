@@ -10,4 +10,3 @@ if [ -f ~/.bash/bash_custom ]; then . ~/.bash/bash_custom; fi
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
-
