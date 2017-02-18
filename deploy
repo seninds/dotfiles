@@ -1,25 +1,64 @@
 #!/usr/bin/python
 
+import logging
 import os.path
 import shutil
 
+logger = logging.getLogger('deploy')
+PROJ_ROOT = os.path.dirname(__file__)
+COMPONENTS = ('bash', 'vim', 'tmux')
 
-def copy_dir(src, dst):
-    if not os.path.exists(dst_dir):
-        os.makedirs(dst_dir)
 
-    for filename in os.listdir(src_dir):
-        shutil.copy(os.path.join(src_dir, filename), dst_dir)
+def init_logging(verbose=0):
+    log_level = int(logging.WARNING - verbose * 10)
+    log_format = '%(asctime)s [%(levelname)s] ' \
+                 '[%(name)s::%(funcName)s:%(lineno)d]: %(message)s'
+    logging.basicConfig(format=log_format, level=log_level)
+
+    logging.addLevelName(logging.DEBUG, 'DBG')
+    logging.addLevelName(logging.INFO, 'INF')
+    logging.addLevelName(logging.WARNING, 'WRN')
+    logging.addLevelName(logging.ERROR, 'ERR')
+    logging.addLevelName(logging.CRITICAL, 'CRT')
+
+
+def init_bash(dest_dir):
+    logger.info('init bash...')
+    logger.debug('start copying bash files to "%s"...', dest_dir)
+    shutil.copy2(os.path.join(PROJ_ROOT, 'bash', 'bashrc'),
+                 os.path.join(dest_dir, '.bashrc'))
+    shutil.copytree(os.path.join(PROJ_ROOT, 'bash'),
+                    os.path.join(dest_dir, '.bash'),
+                    ignore=(lambda src, files: 'bashrc'))
+    logger.debug('finish copying bash files to "%s"', dest_dir)
+
+
+def init_vim(dest_dir):
+    pass
+
+
+def create_parser():
+    import argparse
+    formatter = argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=formatter)
+    parser.add_argument('-d', '--dest', help='destination dir to deploy',
+                        default=os.path.expanduser('~'))
+    parser.add_argument('component', nargs='*', help='component to deploy')
+    parser.add_argument('-v', '--verbose', action='count', default=0,
+                        help='verbosity level (0 means WARN and above)')
+    return parser
 
 
 if __name__ == '__main__':
-    project_root_path = os.path.dirname(__file__)
-    home_dir = os.path.expanduser('~')
+    args = create_parser().parse_args()
+    if not args.component:
+        args.component = COMPONENTS
 
-    for filename in ['bashrc', 'vimrc', 'tmux.conf']:
-        shutil.copy(os.path.join(project_root_path, filename),
-                    os.path.join(home_dir, '.' + filename))
+    init_logging(args.verbose)
 
-    src_dir = os.path.join(project_root_path, 'bash')
-    dst_dir = os.path.join(home_dir, '.', '.' + 'bash')
-    copy_dir(src_dir, dst_dir)
+    for component in args.component:
+        init_func = globals().get('init_' + component)
+        if init_func is None:
+            logger.warning('cannot find init function: "%s"', component)
+        else:
+            init_func(args.dest)

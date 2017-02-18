@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
+#-------------------------------------------------------------------------------
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
@@ -14,14 +15,23 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
+
+#-------------------------------------------------------------------------------
 # Python
 alias py='python'
+alias py2='python2'
+alias py3='python3'
 alias ipy='ipython'
 alias ipy3='ipython3'
 alias ipy2='ipython2'
 
+
+#-------------------------------------------------------------------------------
 # CMake
 alias cmake-dbg='cmake $1 -DCMAKE_BUILD_TYPE=DEBUG'
 alias cmake-rls='cmake $1 -DCMAKE_BUILD_TYPE=RELEASE'
 
+
+#-------------------------------------------------------------------------------
+# Others
 alias envup='source <(tmux show-environment | grep -v "^-" | sed "s/=\(.*\)/=\"\1\"/")'
