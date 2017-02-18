@@ -2,36 +2,44 @@
 
 #-------------------------------------------------------------------------------
 # GPG-AGENT
+if command -v gpg-agent >/dev/null 2>&1 ; then
+    GPG_AGENT_ENV="$HOME/.gnupg/gpg-agent.env"
 
-GPG_AGENT_ENV="$HOME/.gnupg/gpg-agent.env"
-if [[ -e "$GPG_AGENT_ENV" ]] && kill -0 $(grep GPG_AGENT_INFO "$GPG_AGENT_ENV" | cut -d: -f 2) 2>/dev/null; then
-    eval "$(cat "$GPG_AGENT_ENV")"
-else
-    eval "$(gpg-agent --daemon --enable-ssh-support --write-env-file "$GPG_AGENT_ENV")"
+    if [[ -e "$GPG_AGENT_ENV" ]] && \
+        kill -0 $(grep GPG_AGENT_INFO "$GPG_AGENT_ENV" | cut -d: -f 2) 2>/dev/null;
+    then
+        eval "$(cat "$GPG_AGENT_ENV")"
+    else
+        eval "$(gpg-agent --daemon --write-env-file "$GPG_AGENT_ENV")"
+    fi
+    export GPG_AGENT_INFO  # the env file does not contain the export statement
+    export GPG_TTY=$(tty)
+
+    echo -e "use-agent\n" > "$HOME/.gnupg/gpg.conf"
+    echo -e "max-cache-ttl 10800\ndefault-cache-ttl 10800\n" > "$HOME/.gnupg/gpg-agent.conf"
 fi
-export GPG_AGENT_INFO  # the env file does not contain the export statement
-export SSH_AUTH_SOCK   # enable gpg-agent for ssh
 
 
 #-------------------------------------------------------------------------------
 # SSH-AGENT
+if command -v ssh-agent >/dev/null 2>&1 ; then
+    SSH_ENV="$HOME/.ssh/env"
 
-SSH_ENV="$HOME/.ssh/environment"
+    function start_agent {
+         echo "Initialising new SSH agent..."
+         mkdir -p "$(dirname "${SSH_ENV}")"
+         ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+         echo succeeded
+         chmod 600 "${SSH_ENV}"
+         source "${SSH_ENV}" > /dev/null
+         ssh-add
+    }
 
-function start_agent {
-     echo "Initialising new SSH agent..."
-     /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-     echo succeeded
-     chmod 600 "${SSH_ENV}"
-     source "${SSH_ENV}" > /dev/null
-     /usr/bin/ssh-add;
-}
-
-# Source SSH settings, if applicable
-
-if [ -f "${SSH_ENV}" ]; then
-     source "${SSH_ENV}" > /dev/null
-     ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || start_agent
-else
-     start_agent;
+    # Source SSH settings, if applicable
+    if [ -f "${SSH_ENV}" ]; then
+         source "${SSH_ENV}" > /dev/null
+         ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || start_agent
+    else
+         start_agent;
+    fi
 fi
