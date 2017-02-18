@@ -4,4 +4,4 @@ if [ -r ~/.bash/env ]; then source ~/.bash/env; fi
 if [ -r ~/.bash/aliases ]; then source ~/.bash/aliases; fi
 if [ -r ~/.bash/prompt ]; then source ~/.bash/prompt; fi
 if [ -r ~/.bash/functions ]; then source ~/.bash/functions; fi
-if [ -r ~/.bash/agents ]; then source ~/.bashr/agents; fi
+if [ -r ~/.bash/agents ]; then source ~/.bash/agents; fi

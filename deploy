@@ -9,17 +9,47 @@ PROJ_ROOT = os.path.dirname(__file__)
 COMPONENTS = ('bash', 'vim', 'tmux')
 
 
+def copytree(src, dst, symlinks=False, ignore=None):
+    names = os.listdir(src)
+    ignored_names = ignore(src, names) if ignore is not None else set()
+
+    try:
+        os.makedirs(dst)
+    except OSError as e:
+        if not os.path.isdir(dst):
+            raise OSError('cannot create dir: %s', e)
+    else:
+        shutil.copystat(src, dst)
+
+    for name in (n for n in names if n not in ignored_names):
+        src_path = os.path.join(src, name)
+        dst_path = os.path.join(dst, name)
+
+        if symlinks and os.path.islink(src_path):
+            link_to = os.readlink(src_path)
+            try:
+                os.symlink(link_to, dst_path)
+            except OSError as e:
+                if (not os.path.islink(dst_path) or
+                        not os.readlink(dst_path) == link_to):
+                    raise OSError('cannot create symlink: %s', e)
+        elif os.path.isdir(src_path):
+            copytree(src_path, dst_path, symlinks, ignore)
+        else:
+            if os.path.exists(dst_path):
+                logger.warning('recreate file "%s"', dst_path)
+            shutil.copy2(src_path, dst_path)
+
+
 def init_logging(verbose=0):
     log_level = int(logging.WARNING - verbose * 10)
     log_format = '%(asctime)s [%(levelname)s] ' \
                  '[%(name)s::%(funcName)s:%(lineno)d]: %(message)s'
     logging.basicConfig(format=log_format, level=log_level)
 
-    logging.addLevelName(logging.DEBUG, 'DBG')
-    logging.addLevelName(logging.INFO, 'INF')
-    logging.addLevelName(logging.WARNING, 'WRN')
-    logging.addLevelName(logging.ERROR, 'ERR')
-    logging.addLevelName(logging.CRITICAL, 'CRT')
+    for attr, lvl_str in [('DEBUG', 'DBG'), ('INFO', 'INF'), ('ERROR', 'ERR'),
+                          ('WARNING', 'WRN'), ('CRITICAL', 'CRT')]:
+        logging.addLevelName(getattr(logging, attr), lvl_str)
 
 
 def init_bash(dest_dir):
@@ -27,9 +57,8 @@ def init_bash(dest_dir):
     logger.debug('start copying bash files to "%s"...', dest_dir)
     shutil.copy2(os.path.join(PROJ_ROOT, 'bash', 'bashrc'),
                  os.path.join(dest_dir, '.bashrc'))
-    shutil.copytree(os.path.join(PROJ_ROOT, 'bash'),
-                    os.path.join(dest_dir, '.bash'),
-                    ignore=(lambda src, files: 'bashrc'))
+    copytree(os.path.join(PROJ_ROOT, 'bash'), os.path.join(dest_dir, '.bash'),
+             symlinks=True, ignore=(lambda src, files: 'bashrc'))
     logger.debug('finish copying bash files to "%s"', dest_dir)
 
 
