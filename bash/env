@@ -19,6 +19,5 @@ export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
 # Go exports
-export GOPATH="$HOME/go"
-export GOROOT="/usr/local/go"
+export GOROOT="/usr/lib/go"
 export PATH="$PATH:$GOROOT/bin:$GOPATH/bin"
