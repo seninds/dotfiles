@@ -6,10 +6,9 @@ import json
 import logging
 import os
 import tarfile
-import tempfile
 
 try:
-    from urllib import  urlretrieve
+    from urllib import urlretrieve
     from urllib2 import urlopen
 except ImportError:
     from urllib.request import urlretrieve, urlopen
@@ -19,6 +18,8 @@ logger = logging.getLogger('update_plugins')
 REPOS = {
     'python-mode': 'https://github.com/python-mode/python-mode',
 }
+
+SEPARATOR = '_'
 
 VIM_ROOT = os.path.dirname(os.path.abspath(__file__))
 VIM_HOME = os.path.join(os.path.expanduser('~'), '.vim')
@@ -45,19 +46,31 @@ def extract_tags(repo_url):
 
 def update_repo(repo_name, vendor_dir, check_tag=lambda _: True,
                 dry_run=False):
+
+    def extract_tag(filename):
+        tag = filename.split(SEPARATOR)[-1]
+        while any(tag.endswith(ext) for ext in ('.gz', '.tar', '.zip')):
+            tag, _ = os.path.splitext(tag)
+        return tag
+
     repo_url = REPOS[repo_name]
     logger.info('start update repo %s [url: %s]', repo_name, repo_url)
 
-    saved_tags = {name.split('_')[-1] for name in os.listdir(vendor_dir)
+    saved_tags = {extract_tag(name) for name in os.listdir(vendor_dir)
                   if name.startswith(repo_name)}
+    logging.debug('saved tags for repo %s: %s', repo_name, saved_tags)
 
     for tag in (t for t in extract_tags(repo_url) if check_tag(t.name)):
-        dst_name = '{}_{}.tar.gz'.format(repo_name, tag.name)
+        assert_msg = 'tag name "{}" contains {}'.format(tag.name, SEPARATOR)
+        assert SEPARATOR in tag.name, assert_msg
+
+        dst_name = '{}{}{}.tar.gz'.format(repo_name, SEPARATOR, tag.name)
         dst_path = os.path.join(vendor_dir, dst_name)
 
         if tag.name not in saved_tags:
             logger.info('%s: new tag %s -> %s', repo_name, tag.name, dst_path)
-            urlretrieve(tag.tarball, dst_path)
+            if not dry_run:
+                urlretrieve(tag.tarball, dst_path)
         else:
             logger.info('%s: old tag %s -> %s', repo_name, tag.name, dst_path)
 
@@ -78,17 +91,18 @@ def create_parser():
                                default=os.path.join(VIM_ROOT, 'plugins'))
     parent_parser.add_argument('-v', '--verbose', action='count', default=0)
     parent_parser.add_argument('-n', '--dry-run', action='store_true')
-    parent_parser.add_argument('repo', nargs='*', help='repo name')
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
 
     update = subparsers.add_parser('update', parents=[parent_parser])
+    update.add_argument('repo', nargs='*', help='repo name')
 
     deploy = subparsers.add_parser('deploy', parents=[parent_parser])
     deploy.add_argument('-d', '--deploy-dir',
                         default=os.path.join(VIM_HOME, 'dotfiles'),
                         help='dir to deploy side plugins')
+    deploy.add_argument('repo', nargs='*', help='repo name')
     return parser
 
 
