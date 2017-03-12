@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import collections
+import functools
 import json
 import logging
 import os
@@ -13,16 +14,27 @@ try:
 except ImportError:
     from urllib.request import urlretrieve, urlopen
 
-logger = logging.getLogger('update_plugins')
-
-REPOS = {
-    'python-mode': 'https://github.com/python-mode/python-mode',
-}
+logger = logging.getLogger('dot')
 
 SEPARATOR = '_'
-
 VIM_ROOT = os.path.dirname(os.path.abspath(__file__))
 VIM_HOME = os.path.join(os.path.expanduser('~'), '.vim')
+
+
+def ignore_errors(func, errors=Exception, with_logging=True, level='warning'):
+    log_func = getattr(logger, level)
+    errors = tuple(errors) if hasattr(errors, '__iter__') else errors
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except errors as e:
+            if with_logging:
+                log_func('run func "%s": caught exception %s: %s',
+                         func.__name__, type(e).__name__, e)
+
+    return wrapper
 
 
 def init_logging(verbose=0):
@@ -44,7 +56,7 @@ def extract_tags(repo_url):
     return (Tag(t['name'], t['tarball_url'], t['zipball_url']) for t in tags)
 
 
-def update_repo(repo_name, vendor_dir, check_tag=lambda _: True,
+def update_repo(repo_name, repo_url, vendor_dir, check_tag=lambda _: True,
                 dry_run=False):
 
     def extract_tag(filename):
@@ -52,9 +64,6 @@ def update_repo(repo_name, vendor_dir, check_tag=lambda _: True,
         while any(tag.endswith(ext) for ext in ('.gz', '.tar', '.zip')):
             tag, _ = os.path.splitext(tag)
         return tag
-
-    repo_url = REPOS[repo_name]
-    logger.info('start update repo %s [url: %s]', repo_name, repo_url)
 
     saved_tags = {extract_tag(name) for name in os.listdir(vendor_dir)
                   if name.startswith(repo_name)}
@@ -65,19 +74,19 @@ def update_repo(repo_name, vendor_dir, check_tag=lambda _: True,
         assert SEPARATOR not in tag.name, assert_msg
 
         dst_name = '{}{}{}.tar.gz'.format(repo_name, SEPARATOR, tag.name)
-        dst_path = os.path.join(vendor_dir, dst_name)
+        path = os.path.join(vendor_dir, dst_name)
 
+        status = 'old'
         if tag.name not in saved_tags:
-            logger.info('%s: new tag %s -> %s', repo_name, tag.name, dst_path)
+            status = 'new'
             if not dry_run:
-                urlretrieve(tag.tarball, dst_path)
-        else:
-            logger.info('%s: old tag %s -> %s', repo_name, tag.name, dst_path)
+                urlretrieve(tag.tarball, path)
+        logger.info('%s: %s tag %s -> %s', repo_name, status, tag.name, path)
 
         break
 
 
-def deploy_repo(repo_name, vendor_dir, deploy_dir):
+def deploy_repo(repo_name, vendor_dir, output_dir):
     with tarfile.open(arch_file.name, 'r:gz') as tar_file:
         tar_file.extractall(deploy_dir)
 
@@ -86,11 +95,12 @@ def create_parser():
     import argparse
 
     parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument('-V', '--vendor-dir',
-                               help='dir to store side plugins',
+    parent_parser.add_argument('-V', '--vendor', help='dir to store plugins',
                                default=os.path.join(VIM_ROOT, 'plugins'))
     parent_parser.add_argument('-v', '--verbose', action='count', default=0)
     parent_parser.add_argument('-n', '--dry-run', action='store_true')
+    parent_parser.add_argument('-c', '--config', help='path to plugins config',
+                               default=os.path.join(VIM_ROOT, 'plugins.conf'))
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
@@ -99,9 +109,8 @@ def create_parser():
     update.add_argument('repo', nargs='*', help='repo name')
 
     deploy = subparsers.add_parser('deploy', parents=[parent_parser])
-    deploy.add_argument('-d', '--deploy-dir',
-                        default=os.path.join(VIM_HOME, 'dotfiles'),
-                        help='dir to deploy side plugins')
+    deploy.add_argument('-o', '--output', help='dir to deploy plugins',
+                        default=os.path.join(VIM_HOME, 'dotfiles'))
     deploy.add_argument('repo', nargs='*', help='repo name')
     return parser
 
@@ -110,15 +119,22 @@ if __name__ == '__main__':
     args = create_parser().parse_args()
     init_logging(args.verbose)
 
+    with open(args.config) as config_file:
+        repos = json.load(config_file)
+
     if args.command == 'update':
-        repo_names = args.repo if args.repo else REPOS
+        ignore_errors(os.makedirs, OSError)(args.vendor)
+        repo_names = args.repo if args.repo else repos.keys()
         for repo_name in repo_names:
             try:
-                update_repo(repo_name, args.vendor_dir, dry_run=args.dry_run)
+                repo_url = repos[repo_name]['url']
+                logger.info('start update repo %s [url: %s]', repo_name, repo_url)
+                update_repo(repo_name, repo_url, args.vendor,
+                            dry_run=args.dry_run)
             except KeyError as e:
                 logger.error('bad repo name %s', repo_name)
 
     elif args.command == 'deploy':
-        repo_names = args.repo if args.repo else REPOS
+        repo_names = args.repo if args.repo else repos.keys()
         for repo_name in repo_names:
-            deploy_repo(repo_name, args.vendor_dir, args.deploy_dir)
+            deploy_repo(repo_name, args.vendor, args.deploy)
