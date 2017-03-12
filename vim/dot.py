@@ -62,7 +62,7 @@ def update_repo(repo_name, vendor_dir, check_tag=lambda _: True,
 
     for tag in (t for t in extract_tags(repo_url) if check_tag(t.name)):
         assert_msg = 'tag name "{}" contains {}'.format(tag.name, SEPARATOR)
-        assert SEPARATOR in tag.name, assert_msg
+        assert SEPARATOR not in tag.name, assert_msg
 
         dst_name = '{}{}{}.tar.gz'.format(repo_name, SEPARATOR, tag.name)
         dst_path = os.path.join(vendor_dir, dst_name)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         repo_names = args.repo if args.repo else REPOS
         for repo_name in repo_names:
             try:
-                update_repo(repo_name, args.vendor_dir)
+                update_repo(repo_name, args.vendor_dir, dry_run=args.dry_run)
             except KeyError as e:
                 logger.error('bad repo name %s', repo_name)
 
