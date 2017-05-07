@@ -9,9 +9,6 @@ set relativenumber
 set nowrap  " Turn of text wrapping
 set tabstop=4 shiftwidth=4 softtabstop=4 expandtab
 
-filetype off
-call pathogen#infect()
-call pathogen#helptags()
 filetype plugin indent on
 syntax on
 

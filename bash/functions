@@ -5,6 +5,6 @@
 
 if command -v svn >/dev/null 2>&1 ; then
     function svnc {
-        ~/.bash/scripts/svnc.py "$@"
+        "${DEPLOY_DIR}/.bash/scripts/svnc.py" "$@"
     }
 fi
