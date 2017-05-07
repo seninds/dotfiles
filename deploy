@@ -3,10 +3,11 @@
 import logging
 import os.path
 import shutil
+import sys
+
 
 logger = logging.getLogger('deploy')
 PROJ_ROOT = os.path.dirname(__file__)
-COMPONENTS = ('bash', 'vim', 'tmux')
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
@@ -52,8 +53,8 @@ def init_logging(verbose=0):
         logging.addLevelName(getattr(logging, attr), lvl_str)
 
 
-def init_bash(dest_dir):
-    logger.info('init bash...')
+def deploy_bash(dest_dir):
+    logger.info('deploying bash...')
     logger.debug('start copying bash files to "%s"...', dest_dir)
     shutil.copy2(os.path.join(PROJ_ROOT, 'bash', 'bashrc'),
                  os.path.join(dest_dir, '.bashrc'))
@@ -62,7 +63,7 @@ def init_bash(dest_dir):
     logger.debug('finish copying bash files to "%s"', dest_dir)
 
 
-def init_vim(dest_dir):
+def deploy_vim(dest_dir):
     pass
 
 
@@ -72,22 +73,23 @@ def create_parser():
     parser = argparse.ArgumentParser(formatter_class=formatter)
     parser.add_argument('-d', '--dest', help='destination dir to deploy',
                         default=os.path.expanduser('~'))
-    parser.add_argument('component', nargs='*', help='component to deploy')
     parser.add_argument('-v', '--verbose', action='count', default=0,
-                        help='verbosity level (0 means WARN and above)')
+                        help='verbosity level')
+    parser.add_argument('comp', nargs='*', help='component to deploy')
     return parser
 
 
 if __name__ == '__main__':
     args = create_parser().parse_args()
-    if not args.component:
-        args.component = COMPONENTS
-
     init_logging(args.verbose)
 
-    for component in args.component:
-        init_func = globals().get('init_' + component)
-        if init_func is None:
-            logger.warning('cannot find init function: "%s"', component)
-        else:
-            init_func(args.dest)
+    default_comps = ['vim', 'bash']
+    args.comp = args.comp if args.comp else default_comps
+    logger.info('deploy components: %s', args.comp)
+
+    for comp in args.comp:
+        deploy_func = globals().get('deploy_' + comp)
+        if deploy_func is None:
+            logger.error('cannot find deploy_%s()', comp)
+            sys.exit(1)
+        deploy_func(args.dest)
