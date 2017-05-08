@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import functools
 import logging
 import os.path
 import shutil
@@ -9,6 +10,22 @@ from os.path import join as _join
 
 logger = logging.getLogger('deploy')
 PROJ_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+
+def ignore_error(errors, logger=None, log_level='warning'):
+    errors = tuple(errors) if hasattr(errors, '__iter__') else errors
+    log_func = getattr(logger, log_level) if logger is not None else None
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except errors as e:
+                if log_func is not None:
+                    log_func('ignored error: %s: %s', type(e).__name__, e)
+        return wrapper
+    return decorator
 
 
 def init_logging(verbose=0):
@@ -31,7 +48,7 @@ def deploy_bash(output_dir, **kwargs):
 
 def deploy_vim(output_dir, **kwargs):
     logger.info('deploying vim...')
-    shutil.copy2(_join(PROJ_ROOT, 'vimrc'), _join(output_dir, '.vimrc'))
+    ignore_error(OSError)(os.remove)(_join(output_dir, '.vimrc'))
     shutil.rmtree(_join(output_dir, '.vim'), ignore_errors=True)
     shutil.copytree(_join(PROJ_ROOT, 'vim'), _join(output_dir, '.vim'))
 
